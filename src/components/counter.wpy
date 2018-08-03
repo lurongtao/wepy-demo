@@ -1,0 +1,106 @@
+<style lang="less">
+  .counter {
+    text-align: left;
+    font-size: 12px;
+  }
+  .count {
+    font-size: 18px;
+    font-weight: bold;
+    &.red {
+      color: red;
+    }
+    &.green {
+      color: green;
+    }
+  }
+</style>
+<template>
+  <view class="counter {{style}}">
+    <button @tap="plus()" size="mini">  +  </button>
+    <button @tap="minus" size="mini">  -  </button>
+    <button @tap="incNum('a')" size="mini">  INCREMENT  </button>
+    <button @tap="decNum" size="mini">  DECREMENT  </button>
+    <button @tap="asyncInc('x')" size="mini">  ASYNC INCREMENT  </button>
+    <text class="count"> {{num}} </text>
+    <text class="count"> {{stateNum}} </text>
+    <text class="count"> {{asyncNum}} </text>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import { connect } from 'wepy-redux'
+  import { INCREMENT, DECREMENT } from '../store/types/counter'
+  import { asyncInc } from '../store/actions'
+
+  @connect({
+    stateNum (state) {
+      return state.counter.num
+    },
+    asyncNum (state) {
+      return state.counter.asyncNum
+    }
+  }, {
+    // incNum值是字符串，可以转化为：
+    // store.dispatch({
+    //   type: INCREMENT,
+    //   payload: args
+    // })
+    incNum: INCREMENT,
+    decNum: DECREMENT,
+    // 如果是一个函数 fn，
+    // 则会 dispatch(val.apply(store, args))，
+    // 否则的话则直接 dispatch(V)
+    // 如果函数的返回值是个promise, 
+    // 则需要redux-promise支持
+    // store.dispatch((args) => {
+    //   return new Promise(resolve => {
+    //     setTimeout(() => {
+    //       resolve(1)
+    //     }, 1000)
+    //   }).applay(store, args))
+    asyncInc
+  })
+
+  export default class Counter extends wepy.component {
+    props = {
+      num: {
+        type: [Number, String],
+        coerce: function (v) {
+          return +v
+        },
+        default: 50
+      }
+    }
+
+    data = {
+    }
+    events = {
+      'index-broadcast': (...args) => {
+        console.log('counter', args[0])
+        // let $event = args[args.length - 1]
+        // console.log(`${this.$name} receive ${$event.name} from ${$event.source.$name}`)
+      }
+    }
+
+    watch = {
+      num (curVal, oldVal) {
+        console.log(`旧值：${oldVal}，新值：${curVal}`)
+      }
+    }
+
+    methods = {
+      plus(args, args2) {
+        console.log(args, args2)
+
+        this.num = this.num + 1
+        console.log(this.$name + ' plus tap')
+
+        this.$emit('index-emit', 1, 2, 3)
+      },
+      minus () {
+        this.num = this.num - 1
+        console.log(this.$name + ' minus tap')
+      }
+    }
+  }
+</script>
